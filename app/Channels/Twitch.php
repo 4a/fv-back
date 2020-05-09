@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 
 namespace App\Channels;
 
@@ -11,7 +11,7 @@ class Twitch extends Channel
 {
     protected $table = 'channels';
 
-    public static function boot()
+    public static function boot() : void
     {
         parent::boot();
 
@@ -20,9 +20,9 @@ class Twitch extends Channel
         });
     }
 
-    public static function getUserData($embed_ids)
+    public static function getUserData(array $embed_ids) : array
     {
-        $output = null;
+        $output = [];
         $token = self::getToken();
         if ($token) {
             $query = implode("&login=", $embed_ids);
@@ -34,7 +34,7 @@ class Twitch extends Channel
         return $output;
     }
 
-    private static function getToken()
+    private static function getToken() : ?string
     {
         $cache = Token::where('type', 'twitch')->first();
         if (!$cache || !self::validateToken($cache->access_token)) {

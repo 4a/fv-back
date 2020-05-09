@@ -19,5 +19,5 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::get('/channels', 'ChannelController@getChannels');
-Route::get('/channels/init', 'ChannelController@initialize'); // TODO: use command line instead
+Route::get('/channels/migrate', 'ChannelController@migrateLegacyDatabase'); // TODO: use command line instead
 Route::get('/channels/twitch/test', 'ChannelController@fetchAllTwitchUserData'); // TODO: use command line instead

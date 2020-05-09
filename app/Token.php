@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 
 namespace App;
 
@@ -9,7 +9,7 @@ class Token extends Model
     protected $connection = 'mongodb';
     protected $guarded = ['_id'];
 
-    public static function store($type, $data)
+    public static function store(string $type, array $data) : Token
     {
         $token = self::where('type', $type)->first() ?? new Token();
         $token->type = $type;

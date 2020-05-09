@@ -36,7 +36,7 @@ class ChannelController extends Controller
         return $output;
     }
 
-    public static function initialize()
+    public static function migrateLegacyDatabase()
     {
         return Channel::importLegacyDatabase();
     }

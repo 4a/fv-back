@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 
 namespace App\Channels;
 
@@ -10,8 +10,13 @@ class Channel extends Model
     protected $connection = 'mongodb';
     protected $guarded = ['_id'];
 
+    public static function saveHostData($channel, $data)
+    {
+        $channel->host_data = $data;
+    }
+
     /**
-     * START: Database initialization
+     * START: Legacy database migration
      */
 
     public static function importLegacyDatabase()
@@ -108,6 +113,6 @@ class Channel extends Model
     }
 
     /**
-     * END: Database initialization
+     * END: Legacy database migration
      */
 }
