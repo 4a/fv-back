@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Channels;
 
 use Jenssegers\Mongodb\Eloquent\Model;
 use Illuminate\Support\Facades\Http;

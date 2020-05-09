@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Channel;
+use App\Channels\Channel;
+use App\Channels\Twitch;
+use App\Token;
 
 class ChannelController extends Controller
 {
@@ -16,6 +18,22 @@ class ChannelController extends Controller
             $channels = Channel::all();
         }
         return $channels;
+    }
+
+    public static function fetchAllTwitchUserData()
+    {
+        $output = [];
+        $ids = Twitch::all()
+            ->map(function($channel) {
+                return $channel['embed_id'];
+            })
+            ->toArray();
+        $chunks = array_chunk($ids, 100);
+        foreach ($chunks as $chunk) 
+        {
+            $output = array_merge($output, Twitch::getUserData($chunk));
+        }
+        return $output;
     }
 
     public static function initialize()
