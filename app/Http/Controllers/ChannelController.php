@@ -11,13 +11,13 @@ class ChannelController extends Controller
 {
     public static function getChannels($host = null)
     {
-        $channels = [];
-        if ($host) {
-            $channels = Channel::where('host', $host)->get();
-        } else {
-            $channels = Channel::all();
+        $output = [];
+        $channels = Channel::all();
+        foreach ($channels as $channel)
+        {
+            $output[$channel['id']] = $channel;
         }
-        return $channels;
+        return $output;
     }
 
     public static function test()

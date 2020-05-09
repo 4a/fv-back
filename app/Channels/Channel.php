@@ -38,7 +38,8 @@ class Channel extends Model
                 'host' => self::getCanonicalHostname($c['site']),
                 'embed_id' => self::getEmbedId($c),
                 'host_id' => self::getHostId($c),
-                'live' => $c['live'],
+                // 'live' => $c['live'],
+                'live' => false,
                 'legacy' => true,
                 'temporary' => false,
 
@@ -57,7 +58,7 @@ class Channel extends Model
                 ],
                 
                 'statistics' => [
-                    'popularity' => null,
+                    'popularity' => 0,
                     'session_start' => null,
                     'last_session_end' => null,
                     'views' => null,
@@ -88,7 +89,7 @@ class Channel extends Model
             'lst' => 'livestream',
             'ust' => 'ustream',
             'nnd' => 'niconico',
-            'nnl' => 'niconico',
+            'nnl' => 'nicolive',
             'o3d' => 'own3d',
             'htv' => 'hashd',
             'vtv' => 'vaughnlive',
