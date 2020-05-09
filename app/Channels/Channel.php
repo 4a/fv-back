@@ -2,6 +2,7 @@
 
 namespace App\Channels;
 
+use Illuminate\Database\Eloquent\Collection;
 use Jenssegers\Mongodb\Eloquent\Model;
 use Illuminate\Support\Facades\Http;
 
@@ -10,18 +11,13 @@ class Channel extends Model
     protected $connection = 'mongodb';
     protected $guarded = ['_id'];
 
-    public static function saveHostData($channel, $data)
-    {
-        $channel->host_data = $data;
-    }
-
     /**
      * START: Legacy database migration
      */
 
-    public static function importLegacyDatabase()
+    public static function importLegacyDatabase() : Collection
     {
-        $response = Http::get('http://fightanvidya.com/4a4a/2019/api/export');
+        $response = Http::get('http://fightanvidya.com/4a4a/2019/api/export')->json();
         $data = self::normalizeLegacyData($response);
         self::truncate();
         foreach ($data as $d) 
@@ -32,18 +28,19 @@ class Channel extends Model
         return self::all();
     }
 
-    private static function normalizeLegacyData($response)
+    private static function normalizeLegacyData(array $channels) : array
     {
         $output = [];
-        $channels = json_decode($response, true);
         
         foreach ($channels as $c) 
         {
             $output[] = [
                 'host' => self::getCanonicalHostname($c['site']),
-                'embed_id' => $c['chan'],
+                'embed_id' => self::getEmbedId($c),
                 'host_id' => self::getHostId($c),
                 'live' => $c['live'],
+                'legacy' => true,
+                'temporary' => false,
 
                 'display' => [
                     'label' => strip_tags($c['name']),
@@ -75,12 +72,14 @@ class Channel extends Model
                     'category' => $c['category'],
                     'priority' => $c['priority'],
                 ],
+
+                'host_data' => new \stdClass()
             ];
         }
         return $output;
     }
 
-    private static function getCanonicalHostname($legacy_hostname)
+    private static function getCanonicalHostname(string $legacy_hostname) : ?string
     {
         $hostname_map = [
             'ttv' => 'twitch',
@@ -95,10 +94,22 @@ class Channel extends Model
             'vtv' => 'vaughnlive',
             'any' => 'any'
         ];
-        return $hostname_map[$legacy_hostname];
+        return $hostname_map[$legacy_hostname] ?? null;
     }
 
-    private static function getHostId($legacy_data)
+    private static function getEmbedId(array $legacy_data) : string
+    {
+        $host = self::getCanonicalHostname($legacy_data['site']);
+        switch ($host)
+        {
+            case 'youtube':
+                return $legacy_data['chan'];
+            default:
+                return strtolower($legacy_data['chan']);
+        }
+    }
+
+    private static function getHostId(array $legacy_data) : ?string
     {
         $host = self::getCanonicalHostname($legacy_data['site']);
         switch ($host)

@@ -20,20 +20,12 @@ class ChannelController extends Controller
         return $channels;
     }
 
-    public static function fetchAllTwitchUserData()
+    public static function test()
     {
-        $output = [];
-        $ids = Twitch::all()
-            ->map(function($channel) {
-                return $channel['embed_id'];
-            })
-            ->toArray();
-        $chunks = array_chunk($ids, 100);
-        foreach ($chunks as $chunk) 
-        {
-            $output = array_merge($output, Twitch::getUserData($chunk));
-        }
-        return $output;
+        Channel::importLegacyDatabase();
+        Twitch::updateUserData();
+        Twitch::updateStreamData();
+        return Twitch::where('live', true)->get();
     }
 
     public static function migrateLegacyDatabase()
