@@ -9,6 +9,17 @@ use App\Token;
 
 class ChannelController extends Controller
 {
+    public static function trackViewer(Request $request)
+    {
+        $data = $request->all();
+        $user_id = $request->ip() ?? null;
+        $views = $data['views'] ?? null;
+        if ($user_id && $views) {
+            Channel::trackViewer(md5($user_id), $views); // TODO: is md5 fine?
+        }
+        return json_encode(self::getChannels());
+    }
+
     public static function getChannels($host = null)
     {
         $output = [];
@@ -22,7 +33,7 @@ class ChannelController extends Controller
 
     public static function test()
     {
-        Channel::importLegacyDatabase();
+        // Channel::importLegacyDatabase();
         Twitch::updateUserData();
         Twitch::updateStreamData();
         return Twitch::where('live', true)->get();

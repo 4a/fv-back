@@ -11,6 +11,94 @@ class Channel extends Model
     protected $connection = 'mongodb';
     protected $guarded = ['_id'];
 
+    public static function trackViewer($user_id, $views)
+    {
+        $channels = [];
+        self::resetViewerLists($user_id);
+
+        $views = self::validateViewerInput($views);
+        foreach ($views as $view)
+        {
+            $host = $view['host'];
+            $embed_id = $view['embed_id'];
+            if ($host && $embed_id) {
+                $channel = self::where('embed_id', $embed_id)->where('host', $host)->first();
+                $first_viewer = !count($channel->viewers);
+                $already_viewing = $channel->viewers[$user_id] ?? false;
+                $channel->viewers = [
+                    $user_id => true
+                ];
+                // $channel->statistics = array_merge($channel->statistics, [
+                //     "session_start" => $first_viewer ? strtotime('now') : $channel->statistics->session_start,
+                //     "lifetime_views" => !$already_viewing ? $channel->statistics->lifetime_views++ : $channel->statistics->lifetime_views,
+                // ]);
+                $channel->save();
+                $channels[] = $channel;
+            }
+        }
+
+        return [
+            'user' => $user_id,
+            'channels' => $channels
+        ];
+    }
+
+    private static function validateViewerInput($views)
+    {
+        $output = [];
+        $seen = [];
+        $allowed_hosts = [
+            'twitch',
+            'youtube',
+            'livestream',
+            'niconico',
+            'vaughnlive',
+            'any'
+        ];
+
+        foreach ($views as $view)
+        {
+            if (!$view['embed_id']) {
+                continue;
+            }
+            $host = strtolower($view['host']);
+            $embed_id = ($host !== "youtube") ? strtolower($view['embed_id']) : $view['embed_id'];
+            if (!in_array($host, $allowed_hosts) || array_key_exists("{$host}_{$embed_id}", $seen)) {
+                continue;
+            } else {
+                $seen["{$host}_{$embed_id}"] = true;
+                $output[] = [
+                    'host' => $host,
+                    'embed_id' => $embed_id
+                ];
+            }
+        }
+
+        return $output;
+    }
+
+    private static function resetViewerLists($user_id)
+    {
+        $search_key = "viewers.{$user_id}";
+        $channels = self::where($search_key, true)->get();
+        foreach ($channels as $channel)
+        {
+            $channel->viewers = self::unsetArrayKey($channel->viewers, $user_id);
+            $last_viewer = !count($channel->viewers);
+            // $channel->statistics = array_merge($channel->statistics, [
+            //     "last_session_end" => $last_viewer ? strtotime('now') : $channel->statistics->last_session_end,
+            // ]);
+
+            $channel->save();
+        }
+        return $channels;
+    }
+
+    private static function unsetArrayKey(array $array, string $key)
+    {
+        return array_diff_key($array, array_flip([$key])); // wtf
+    }
+
     /**
      * START: Legacy database migration
      */
@@ -57,11 +145,11 @@ class Channel extends Model
                     'use_border' => false,
                 ],
                 
+                'viewers' => [],
+
                 'statistics' => [
-                    'popularity' => 0,
                     'session_start' => null,
                     'last_session_end' => null,
-                    'views' => null,
                     'lifetime_views' => null,
                     'lifetime_view_time' => null,
                     'score' => null,
