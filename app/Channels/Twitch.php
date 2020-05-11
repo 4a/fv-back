@@ -79,7 +79,7 @@ class Twitch extends Channel
         }
     }
 
-    private static function getStreamData(array $user_ids) : array // https://dev.twitch.tv/docs/api/reference#get-streams
+    public static function getStreamData(array $user_ids) : array // https://dev.twitch.tv/docs/api/reference#get-streams
     {
         $output = [];
         $token = self::getToken();
@@ -96,7 +96,7 @@ class Twitch extends Channel
         return $output;
     }
 
-    private static function getUserData(array $embed_ids) : array // https://dev.twitch.tv/docs/api/reference#get-users
+    public static function getUserData(array $embed_ids) : array // https://dev.twitch.tv/docs/api/reference#get-users
     {
         $output = [];
         $token = self::getToken();

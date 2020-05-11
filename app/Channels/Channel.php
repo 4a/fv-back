@@ -23,15 +23,61 @@ class Channel extends Model
             $embed_id = $view['embed_id'];
             if ($host && $embed_id) {
                 $channel = self::where('embed_id', $embed_id)->where('host', $host)->first();
-                $first_viewer = !count($channel->viewers);
-                $already_viewing = $channel->viewers[$user_id] ?? false;
-                $channel->viewers = [
-                    $user_id => true
-                ];
-                // $channel->statistics = array_merge($channel->statistics, [
-                //     "session_start" => $first_viewer ? strtotime('now') : $channel->statistics->session_start,
-                //     "lifetime_views" => !$already_viewing ? $channel->statistics->lifetime_views++ : $channel->statistics->lifetime_views,
-                // ]);
+                if ($channel) {
+                    $first_viewer = !count($channel->viewers);
+                    $already_viewing = $channel->viewers[$user_id] ?? false;
+                    $channel->viewers = [
+                        $user_id => true
+                    ];
+                    // $channel->statistics = array_merge($channel->statistics, [
+                    //     "session_start" => $first_viewer ? strtotime('now') : $channel->statistics->session_start,
+                    //     "lifetime_views" => !$already_viewing ? $channel->statistics->lifetime_views++ : $channel->statistics->lifetime_views,
+                    // ]);
+                } else {
+                    $channel = new Channel([
+                        'host' => $host,
+                        'embed_id' => $embed_id,
+                        'host_id' => null,
+                        'live' => true,
+                        'legacy' => false,
+                        'temporary' => true,
+        
+                        'display' => [
+                            'label' => $embed_id,
+                            'alternate_label' => $embed_id,
+                            'use_alternate_label' => false,
+                            'label_color' => null,
+        
+                            'icon' => null,
+                            'custom_icon' => null,
+                            'use_custom_icon' => false,
+                            
+                            'border_color' => null,
+                            'use_border' => true,
+                        ],
+                        
+                        'viewers' => [
+                            $user_id => true
+                        ],
+        
+                        'statistics' => [
+                            'session_start' => null,
+                            'last_session_end' => null,
+                            'lifetime_views' => null,
+                            'lifetime_view_time' => null,
+                            'score' => null,
+                            'date_last_live' => null,
+                        ],       
+                        
+                        'groups' => [
+                            'owner' => null,
+                            'category' => null,
+                            'priority' => 99999,
+                        ],
+        
+                        'host_data' => new \stdClass()
+                    ]);
+                }
                 $channel->save();
                 $channels[] = $channel;
             }
@@ -84,12 +130,16 @@ class Channel extends Model
         foreach ($channels as $channel)
         {
             $channel->viewers = self::unsetArrayKey($channel->viewers, $user_id);
-            $last_viewer = !count($channel->viewers);
+            $last_viewer = !count($channel->viewers); // should be 0 if we're the last viewer
             // $channel->statistics = array_merge($channel->statistics, [
             //     "last_session_end" => $last_viewer ? strtotime('now') : $channel->statistics->last_session_end,
             // ]);
 
-            $channel->save();
+            if ($last_viewer && $channel->temporary) {
+                $channel->delete();
+            } else {
+                $channel->save();
+            }
         }
         return $channels;
     }
@@ -139,7 +189,7 @@ class Channel extends Model
 
                     'icon' => null,
                     'custom_icon' => $c['icon'],
-                    'use_custom_icon' => false,
+                    'use_custom_icon' => true,
                     
                     'border_color' => null,
                     'use_border' => false,
