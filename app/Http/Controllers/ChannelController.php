@@ -30,17 +30,4 @@ class ChannelController extends Controller
         }
         return $output;
     }
-
-    public static function test()
-    {
-        // Channel::importLegacyDatabase();
-        Twitch::updateUserData();
-        Twitch::updateStreamData();
-        return Twitch::where('live', true)->get();
-    }
-
-    public static function migrateLegacyDatabase()
-    {
-        return Channel::importLegacyDatabase();
-    }
 }

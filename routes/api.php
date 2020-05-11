@@ -19,7 +19,4 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::get('/channels', 'ChannelController@getChannels');
-Route::get('/channels/migrate', 'ChannelController@migrateLegacyDatabase'); // TODO: use command line instead
-Route::get('/channels/twitch/test', 'ChannelController@test'); // TODO: use command line instead
-
 Route::post('/channels/trackViewer', 'ChannelController@trackViewer');
