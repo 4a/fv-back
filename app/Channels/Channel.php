@@ -26,9 +26,9 @@ class Channel extends Model
                 if ($channel) {
                     $first_viewer = !count($channel->viewers);
                     $already_viewing = $channel->viewers[$user_id] ?? false;
-                    $channel->viewers = [
+                    $channel->viewers = array_merge($channel->viewers, [
                         $user_id => true
-                    ];
+                    ]);
                     // $channel->statistics = array_merge($channel->statistics, [
                     //     "session_start" => $first_viewer ? strtotime('now') : $channel->statistics->session_start,
                     //     "lifetime_views" => !$already_viewing ? $channel->statistics->lifetime_views++ : $channel->statistics->lifetime_views,
